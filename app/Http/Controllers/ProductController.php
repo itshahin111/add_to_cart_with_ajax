@@ -17,17 +17,6 @@ class ProductController extends Controller
         $products = Product::all();
         return view('products', compact('products'));
     }
-
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
-    public function cart()
-    {
-        return view('cart');
-    }
-
     /**
      * Write code on Method
      *
@@ -53,6 +42,15 @@ class ProductController extends Controller
 
         // Return a JSON response for AJAX
         return response()->json(['message' => 'Product added to cart successfully!']);
+    }
+    /**
+     * Write code on Method
+     *
+     * @return response()
+     */
+    public function cart()
+    {
+        return view('cart');
     }
 
 
