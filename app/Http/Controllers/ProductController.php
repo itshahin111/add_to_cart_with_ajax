@@ -36,7 +36,6 @@ class ProductController extends Controller
     public function addToCart($id)
     {
         $product = Product::findOrFail($id);
-
         $cart = session()->get('cart', []);
 
         if (isset($cart[$id])) {
@@ -51,8 +50,11 @@ class ProductController extends Controller
         }
 
         session()->put('cart', $cart);
-        return redirect()->back()->with('success', 'Product added to cart successfully!');
+
+        // Return a JSON response for AJAX
+        return response()->json(['message' => 'Product added to cart successfully!']);
     }
+
 
     /**
      * Write code on Method

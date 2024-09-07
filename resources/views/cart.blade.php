@@ -19,8 +19,10 @@
                     <tr data-id="{{ $id }}">
                         <td data-th="Product">
                             <div class="row">
-                                <div class="col-sm-3 hidden-xs"><img src="{{ $details['image'] }}" width="100"
-                                        height="100" class="img-responsive" /></div>
+                                <div class="col-sm-3 hidden-xs">
+                                    <img src="{{ $details['image'] }}" width="100" height="100"
+                                        class="img-responsive" />
+                                </div>
                                 <div class="col-sm-9">
                                     <h4 class="nomargin">{{ $details['name'] }}</h4>
                                 </div>
@@ -29,9 +31,10 @@
                         <td data-th="Price">${{ $details['price'] }}</td>
                         <td data-th="Quantity">
                             <input type="number" value="{{ $details['quantity'] }}"
-                                class="form-control quantity update-cart" />
+                                class="form-control quantity update-cart" min="1" />
                         </td>
-                        <td data-th="Subtotal" class="text-center">${{ $details['price'] * $details['quantity'] }}</td>
+                        <td data-th="Subtotal" class="text-center subtotal">${{ $details['price'] * $details['quantity'] }}
+                        </td>
                         <td class="actions" data-th="">
                             <button class="btn btn-danger btn-sm remove-from-cart"><i class="fa fa-trash-o"></i></button>
                         </td>
@@ -42,7 +45,7 @@
         <tfoot>
             <tr>
                 <td colspan="5" class="text-right">
-                    <h3><strong>Total ${{ $total }}</strong></h3>
+                    <h3><strong>Total $<span id="total">{{ $total }}</span></strong></h3>
                 </td>
             </tr>
             <tr>
@@ -58,43 +61,59 @@
 
 @section('scripts')
     <script type="text/javascript">
+        // Update Cart Quantity
         $(".update-cart").change(function(e) {
             e.preventDefault();
-
-            var ele = $(this);
+            let ele = $(this);
+            let quantity = ele.val();
+            let id = ele.closest('tr').data('id');
 
             $.ajax({
                 url: '{{ route('update.cart') }}',
                 method: "patch",
                 data: {
                     _token: '{{ csrf_token() }}',
-                    id: ele.parents("tr").attr("data-id"),
-                    quantity: ele.parents("tr").find(".quantity").val()
+                    id: id,
+                    quantity: quantity
                 },
                 success: function(response) {
-                    window.location.reload();
+                    let price = parseFloat(ele.closest('tr').find('td[data-th="Price"]').text().replace(
+                        '$', ''));
+                    let subtotal = price * quantity;
+                    ele.closest('tr').find('.subtotal').text('$' + subtotal.toFixed(2));
+                    updateTotal();
                 }
             });
         });
 
+        // Remove From Cart
         $(".remove-from-cart").click(function(e) {
             e.preventDefault();
+            let ele = $(this);
 
-            var ele = $(this);
-
-            if (confirm("Are you sure want to remove?")) {
+            if (confirm("Are you sure you want to remove this item?")) {
                 $.ajax({
                     url: '{{ route('remove.from.cart') }}',
                     method: "DELETE",
                     data: {
                         _token: '{{ csrf_token() }}',
-                        id: ele.parents("tr").attr("data-id")
+                        id: ele.closest('tr').data('id')
                     },
                     success: function(response) {
-                        window.location.reload();
+                        ele.closest('tr').remove();
+                        updateTotal();
                     }
                 });
             }
         });
+
+        // Update Total Amount
+        function updateTotal() {
+            let total = 0;
+            $('.subtotal').each(function() {
+                total += parseFloat($(this).text().replace('$', ''));
+            });
+            $('#total').text(total.toFixed(2));
+        }
     </script>
 @endsection
